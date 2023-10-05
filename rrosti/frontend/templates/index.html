@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="icon" type="image/png" href="/static/images/favicon.ico">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0">
+    <title>{{title}}</title>
+</head>
+<body>
+
+    <header>
+        <div id="title"><a href="/">{{title}}</a></div>
+    </header>
+    <div id="chat">
+        <div id="messages-wrapper">
+            <div id="chat-messages">
+            </div>
+        </div>
+    </div>
+    <div id="input-wrapper">
+        <div id="new-input-wrapper">
+            <input id="new-input" type="text" autofocus enterkeyhint="done" disabled placeholder="Type a new question...">
+            <div id="submit" class="submit disabled"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M16,464,496,256,16,48V208l320,48L16,304Z"/></svg></div>
+        </div>
+        <div id="new-context-wrapper" class="disabled"><img src="/static/images/new_context.png" /></div>
+    </div>
+    <footer>
+        <div>Powered by <a href="https://github.com/rocket-science-ch/rocketrosti">ROCKETRÖSTI</a> by <a href="https://rocket-science.ch">Rocket Science AG</a>, Switzerland</div>
+    </footer>
+
+
+    <script type="module">
+        import { WebsocketClient } from '/static/js/WebsocketClient.js';
+        import { Answer } from '/static/js/Answer.js';
+        import { Question } from '/static/js/Question.js';
+        import { Disclaimer } from '/static/js/Disclaimer.js';
+
+        const chatElement = document.getElementById('chat');
+        const chatMessages = document.getElementById('chat-messages');
+        const inputField = document.getElementById('new-input');
+        const submitButton = document.getElementById('submit');
+        const newContextButton = document.getElementById('new-context-wrapper');
+
+        var typingLoader = document.createElement('div');
+        typingLoader.classList.add('message');
+        typingLoader.classList.add('answer');
+        typingLoader.classList.add('typing');
+        var bubbleElement = document.createElement('div');
+        bubbleElement.classList.add('bubble');
+        bubbleElement.innerHTML = '<img height="16px" src="/static/images/typing.gif" />';
+        typingLoader.append(bubbleElement);
+
+        function scrollDown() {
+            window.scroll({top: document.body.scrollHeight, behavior: 'smooth'});
+        }
+
+        function tryEnableInput() {
+            let canEnable = websocketClient.connected && localStorage.getItem("acceptedDisclaimer");
+
+            if(canEnable) {
+                inputField.disabled = false;
+                submitButton.classList.remove('disabled');
+                inputField.focus();
+            }
+            return canEnable;
+        }
+
+        function disableInput() {
+            inputField.disabled = true;
+            submitButton.classList.add('disabled');
+        }
+
+        function enableNewContext() {
+            newContextButton.classList.remove('disabled');
+        }
+
+        function disableNewContext() {
+            newContextButton.classList.add('disabled');
+        }
+
+        function showLoader() {
+            chatMessages.append(typingLoader);
+            scrollDown();
+        }
+
+        function removeLoader() {
+            if(typingLoader.parentNode){
+                chatMessages.removeChild(typingLoader);
+            }
+        }
+
+        function renderContextDividerElement() {
+            let newContextDivider = document.createElement('div');
+            newContextDivider.classList.add('new-context-divider');
+            let hr = document.createElement('hr');
+
+            let newContextMessage = document.createElement('p');
+            newContextMessage.classList.add('new-context-message');
+            newContextMessage.innerText = 'New discussion started';
+
+            newContextDivider.append(hr);
+            newContextDivider.append(newContextMessage);
+
+            return newContextDivider;
+        }
+
+        function onAnswer(message) {
+            let answer = new Answer(message.id, message, websocketClient);
+            chatMessages.insertBefore(answer.element, typingLoader);
+
+            tryEnableInput();
+            enableNewContext();
+
+            scrollDown();
+        }
+
+        function onIntermediate(message) {
+            let answer = new Answer(message.id, message, websocketClient);
+            chatMessages.insertBefore(answer.element, typingLoader);
+            scrollDown();
+        }
+
+        function onUserTurn() {
+            console.log('It is the users turn now');
+
+            removeLoader();
+            tryEnableInput();
+        }
+
+        function onOpen() {
+            tryEnableInput()
+            disableNewContext();
+            chatMessages.append(renderContextDividerElement());
+            scrollDown();
+        }
+
+        function onClose() {
+            disableNewContext();
+            disableInput();
+            scrollDown();
+        }
+
+        function sendUserQuestion() {
+            let content = inputField.value
+
+            if(content) {
+                let question = new Question(content);
+                chatMessages.append(question.element);
+
+                client.sendQuestion(question);
+                inputField.value = '';
+                inputField.blur();
+
+                disableInput();
+
+                showLoader();
+                scrollDown();
+            }
+        }
+
+        inputField.addEventListener('keydown', (evt) => {
+            if (evt.keyCode == 13) {
+                sendUserQuestion();
+            }
+        });
+
+        submitButton.addEventListener('click', (evt) => {
+            sendUserQuestion();
+        });
+
+        newContextButton.addEventListener('click', (evt) => {
+            if(!newContextButton.classList.contains('disabled')) {
+                client.sendNewContextRequest();
+            }
+        });
+
+        var client = new WebsocketClient( '{{websocketUrl}}' , onAnswer, onIntermediate, onUserTurn, onOpen, onClose);
+        window.websocketClient = client;
+
+        var disclaimer = new Disclaimer(() => {
+            localStorage.setItem("acceptedDisclaimer", true);
+            tryEnableInput();
+        }, localStorage.getItem("acceptedDisclaimer"));
+
+        chatMessages.append(disclaimer.element);
+
+    </script>
+</body>
+</html>

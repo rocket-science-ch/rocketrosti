@@ -1,0 +1,46 @@
+{
+    "python.linting.pylintEnabled": false,
+    "python.linting.mypyEnabled": true,
+    "python.linting.enabled": false,
+    "python.linting.mypyArgs": [
+        "--follow-imports=silent",
+        "--show-column-numbers",
+        "--no-pretty",
+        "--show-error-codes"
+    ],
+    "mypy.runUsingActiveInterpreter": true,
+    "mypy.targets": [
+        "snow_leopard", "tests"
+    ],
+    "python.analysis.packageIndexDepths": [
+        {
+            "name": "sklearn",
+            "depth": 2
+        },
+        {
+            "name": "matplotlib",
+            "depth": 2
+        },
+        {
+            "name": "scipy",
+            "depth": 2
+        },
+        {
+            "name": "django",
+            "depth": 0
+        },
+        {
+            "name": "flask",
+            "depth": 2
+        },
+        {
+            "name": "langchain",
+            "depth": 5
+        }
+    ],
+    "python.testing.pytestArgs": [
+        "snow_leopard", "tests"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
+}

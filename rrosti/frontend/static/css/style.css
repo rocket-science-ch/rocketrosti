@@ -1,0 +1,420 @@
+/* Copyright (c) 2023 Rocket Science AG, Switzerland
+
+   Permission is hereby granted, free of charge, to any person obtaining a copy
+   of this software and associated documentation files (the "Software"), to deal
+   in the Software without restriction, including without limitation the rights
+   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+   copies of the Software, and to permit persons to whom the Software is
+   furnished to do so, subject to the following conditions:
+   The above copyright notice and this permission notice shall be included in all
+   copies or substantial portions of the Software.
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+   SOFTWARE. */
+
+
+@font-face {
+    font-family: "OSR";
+    src: url("/static/font/OpenSans-Regular.woff2") format("woff2"),
+         url("/static/font/OpenSans-Regular.woff") format("woff");
+    font-weight: 400;
+}
+
+@font-face {
+    font-family: "OSR";
+    src: url("/static/font/OpenSans-Bold.woff2") format("woff2"),
+         url("/static/font/OpenSans-Bold.woff") format("woff");
+    font-weight: 700;
+}
+
+:root {
+    --chat-width: 80%;
+    --bubble-width: 80%;
+    --dislike-input-width: 50%;
+}
+
+@media screen and (max-width: 670px) {
+    :root {
+        --chat-width: 95%;
+        --bubble-width: 92%;
+        --dislike-input-width: 75%;
+    }
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+
+    font-family: 'OSR';
+    line-height: 1.3;
+}
+
+input:focus {
+    outline: 0 none;
+    border: 1.5px solid #212121;
+    border-radius: 2px;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+}
+
+html {
+    overflow: hidden;
+    overflow-y: scroll;
+    height: 100%;
+}
+
+body {
+    background: #efefef;
+}
+
+header {
+    background: #212121;
+    color: white;
+    padding: 10px;
+    position: fixed;
+    width: 100%;
+    font-weight: bold;
+    font-size: 20px;
+    z-index: 100;
+}
+
+#chat {
+    width: var(--chat-width);
+    max-width: 1000px;
+    margin-left: auto;
+    margin-right: auto;
+
+    height: auto;
+    min-height: 100%;
+
+    padding-top: calc(1.2*2rem + 40px);
+    padding-bottom: calc(1.2*1rem + 20px + 1rem + 60px);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: end;
+}
+
+#chat .message {
+    margin-top: 10px;
+}
+
+#chat .message.question .bubble {
+    margin-left: auto;
+    margin-right: 0px;
+    background: darkseagreen;
+    border: 1px solid #999;
+}
+
+#chat .message.answer .bubble {
+    margin-right: auto;
+    margin-left: 0px;
+    background-color: #FCFCFC;
+}
+
+#chat .message.answer.intermediate .bubble {
+    background: #999;
+    opacity: 0.8;
+}
+
+#chat .message .bubble {
+    max-width: var(--bubble-width);
+    width: max-content;
+    border-radius: 10px;
+    border: 1px solid #999;
+    padding: 7px;
+}
+
+#chat .answer-content {
+    border-bottom: 1px solid lightgray;
+    padding-bottom: 6px;
+}
+
+#chat .answer-content .source {
+    font-size: 0.6rem;
+    vertical-align: top;
+}
+
+#chat .answer-content .source a {
+    text-decoration: none;
+    color: #475E47;
+}
+
+#chat .answer-content .source a:active, #chat .answer-content .source a:visited {
+    color: #475E47;
+}
+
+#chat .likes {
+    display: flex;
+    justify-content: end;
+    padding-top: 6px;
+}
+
+#chat .likes img {
+    height: 20px;
+    transition: filter 0.1s linear;
+}
+
+#chat .likes .like, #chat .likes .dislike {
+    transition: width 0.1s linear;
+    width: 23px;
+}
+
+#chat .likes .like {
+    padding-left: 5px;
+    cursor: pointer;
+}
+
+#chat .likes .dislike{
+    margin-top: 2px;
+    padding-left: 5px;
+    cursor: pointer;
+}
+
+#chat .likes .like:hover img, #chat .message.answer.liked .like img {
+    filter: invert(75%) sepia(20%) saturate(471%) hue-rotate(71deg) brightness(91%) contrast(89%);
+}
+
+#chat .likes .dislike:hover img, #chat .message.answer.disliked .dislike img, #chat .message.answer.disliking .dislike img {
+    filter: invert(13%) sepia(89%) saturate(7172%) hue-rotate(3deg) brightness(116%) contrast(118%);
+}
+
+#chat .message.answer.disliking .dislike img {
+    opacity: 0.5;
+}
+
+#chat .message.answer.liked .dislike {
+    overflow: hidden;
+    width: 0px;
+}
+
+#chat .message.answer.disliked .like, #chat .message.answer.disliking .like {
+    overflow: hidden;
+    width: 0px;
+}
+
+#chat .dislike-input-wrapper {
+    width: 0px;
+    transition: width 0.2s linear;
+    overflow: hidden;
+    position: relative;
+}
+
+#chat .dislike-input-wrapper input {
+    width: calc(100% - 12px);
+    margin-left: 10px;
+    font-size: 0.8rem;
+    padding: 2px;
+}
+
+
+#chat .dislike-input-wrapper .dislike-submit {
+    position: absolute;
+    right: 4px;
+    height: 18px;
+    width: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    fill: darkseagreen;
+    opacity: 0.5;
+    transition: opacity 0.1s linear;
+}
+
+#chat .dislike-input-wrapper .dislike-submit:hover {
+    opacity: 1;
+}
+
+#chat .message.answer.disliking .dislike-input-wrapper {
+    width: var(--dislike-input-width);
+}
+
+#chat .message.answer.disliked .dislike-input-wrapper {
+    width: 0px;
+}
+
+#chat .message.answer [tooltip] {
+    position: relative;
+}
+
+#chat .message.answer [tooltip]::after {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    content: attr(tooltip);
+    left: 50%;
+    top: calc(100% + 10px);
+    border-radius: 4px;
+    background-color: white;
+    z-index: 10;
+    padding: 7px;
+    width: max-content;
+    transform: translate(-50%, -20px);
+    transition: all 50ms;
+    border: 1px solid #999;
+    font-size: 0.8rem;
+}
+
+#chat .message.answer [tooltip]:hover::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+#chat .new-context-divider {
+    padding: 20px 0px;
+}
+
+#chat .new-context-divider .new-context-message {
+    font-size: 0.8rem;
+    text-align: center;
+    margin-top: 4px;
+}
+
+#chat .message.disclaimer .accept-button-wrapper {
+    display: flex;
+    justify-content: end;
+}
+
+#chat .message.disclaimer .accept-button {
+    padding: 3px 10px;
+    margin-top: 5px;
+    cursor: pointer;
+    border: 1px solid darkgray;
+    background-color: white;
+    border-radius: 4px;
+    width: max-content;
+    transition: background-color 0.3s, opacity 0.3s;
+}
+
+#chat .message.disclaimer .accept-button:hover {
+    background: darkseagreen;
+}
+
+#chat .message.disclaimer .accept-button.accepted {
+    background-color: darkseagreen;
+    cursor: default;
+    opacity: 0.5;
+}
+
+#chat .message.disclaimer .bubble {
+    background-color: #fff4dc;
+}
+
+#chat .message summary {
+    font-weight: bold;
+    margin-bottom: 7px;
+    cursor: pointer;
+}
+
+#input-wrapper {
+    padding: 20px 0px;
+    position: fixed;
+    width: var(--chat-width);
+    max-width: 1000px;
+    bottom: calc(20px + 0.9rem);
+
+    left: 50%;
+    transform: translateX(-50%);
+
+    display: flex;
+    flex-direction: row;
+}
+
+#input-wrapper input {
+    height: 2.5rem;
+    font-size: 1rem;
+    padding-left: 0.5rem;
+    width: 100%;
+    padding-right: 3rem;
+}
+
+#input-wrapper input[disabled] {
+    cursor: wait;
+}
+
+#input-wrapper .submit {
+    width: 2.2rem;
+    height: 2.2rem;
+
+    top: 50%;
+    right: 0.3rem;
+    transform: translateY(-50%);
+
+    position: absolute;
+
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    cursor: pointer;
+}
+
+#input-wrapper .submit svg {
+    fill: darkseagreen;
+}
+
+#input-wrapper .submit:hover {
+    opacity: 1;
+}
+
+#input-wrapper .submit.disabled  {
+    opacity: 0.2;
+    cursor: wait;
+}
+
+#new-input-wrapper {
+    flex-grow: 1;
+    position: relative;
+}
+
+#new-context-wrapper {
+    width: 40px;
+    overflow-x: hidden;
+    padding-left: 6px;
+    position: relative;
+    cursor: pointer;
+    transition: width 0.1s linear;
+}
+
+#new-context-wrapper.disabled {
+    width: 0px;
+}
+
+#new-context-wrapper img {
+    top: 3px;
+    height: 2rem;
+    position: relative;
+    transition: filter 0.1s linear;
+}
+
+#new-context-wrapper:not(.disabled) img:hover {
+    filter: invert(75%) sepia(20%) saturate(471%) hue-rotate(71deg) brightness(91%) contrast(89%);
+}
+
+footer {
+    background: #212121;
+    padding: 10px;
+    text-align: right;
+    position: fixed;
+    bottom: 0px;
+    width: 100%;
+    font-size: 0.7rem;
+    color: white;
+}
+
+footer a, footer a:active, footer a:visited, header a, header a:active, header a:visited {
+    text-decoration: none;
+    color: white;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}

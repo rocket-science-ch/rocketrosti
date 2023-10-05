@@ -1,0 +1,104 @@
+#################################################################################################
+### NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE NOTE ###
+#################################################################################################
+### This file contains the *default* configuration.                                           ###
+### To override any of these settings, create a file called config.yaml in the directory in   ###
+### which you run the program. This file will be loaded *after* this file, and will override  ###
+### any settings in this file. Non-overridden settings will be taken from this file.          ###
+#################################################################################################
+
+frontend:
+    websocket_url: "ws://localhost:8765/"
+    title: "LAME CHATBOT WITHOUT TITLE"
+
+backend:
+    listen_port: 8765
+
+document_sync:
+    data_gen_path: data/gen
+    source_docs_path: data/source_documents
+    parsed_docs_path: data/gen/parsed_documents
+    snippet_window_size: 800  # characters
+    snippet_step_size: 300  # characters; aka stride
+    min_snippet_size: 30  # ignore snippets shorter than this many characters
+
+openai_api:
+    embedding_model: "text-embedding-ada-002"
+    chat_completion_model: "gpt-3.5-turbo"
+    max_tokens_per_model:
+        text-embedding-ada-002: 8191
+        gpt-3.5-turbo: 4096
+        gpt-4: 8192
+    completion_max_tokens: 1000
+    completion_min_tokens: 900  # We refuse to query if we can request fewer tokens than this
+    completion_temperature: 0.0
+
+    num_chat_completion_worker_threads: 60
+    num_embedding_worker_threads: 15
+
+    rate_limit_initial_interval: 0.2
+    rate_limit_min_interval: 0.01
+    rate_limit_max_interval: 5.0
+    rate_limit_error_multiplier: 1.5
+    rate_limit_success_multiplier: 0.9
+    rate_limit_decrease_after_seconds: 6.0  # Decrease the rate limit after this many seconds of idle time.
+
+    chat_models:
+    -   gpt-3.5-turbo
+    -   gpt-3.5-turbo-16k
+    -   gpt-4
+    -   gpt-4-32k
+
+    model_cost:
+        text-embedding-ada-002:
+            prompt_tokens: 0.0001
+            completion_tokens: 0.0001
+        text-ada-001:
+            prompt_tokens: 0.0004
+            completion_tokens: 0.0004
+        text-babbage-001:
+            prompt_tokens: 0.0005
+            completion_tokens: 0.0005
+        text-curie-001:
+            prompt_tokens: 0.002
+            completion_tokens: 0.002
+        text-davinci-003:
+            prompt_tokens: 0.02
+            completion_tokens: 0.02
+        gpt-3.5-turbo:
+            prompt_tokens: 0.003
+            completion_tokens: 0.004
+        gpt-4:
+            prompt_tokens: 0.03
+            completion_tokens: 0.06
+        gpt-4-32k:
+            prompt_tokens: 0.06
+            completion_tokens: 0.12
+
+    use_endpoint: openai
+
+    endpoints:
+        azure:
+            api_key: ${oc.env:OPENAI_API_KEY_AZURE, ${file:"~/.openai.apikey.azure", ${oc.env:OPENAI_API_KEY, ""}}}
+            api_base: "https://some-azure-name.openai.azure.com"
+            api_type: azure
+            api_version: "2023-05-15"
+            max_embedding_requests_per_query: 16
+            engine_map:  # Map from OpenAI model name to Azure engine name
+                text-embedding-ada-002: "your-text-embedding-ada-002"
+                gpt-3.5-turbo: "your-gpt-35-turbo-june"
+                gpt-4: "your-gpt-4"
+                gpt-4-32k: "your-gpt-4-32"
+        openai:
+            max_embedding_requests_per_query: 200
+            # This has intentionally different precedence since OPENAI_API_KEY is a standard environment variable
+            api_key: ${oc.env:OPENAI_API_KEY_OPENAI, ${oc.env:OPENAI_API_KEY, ${file:"~/.openai.apikey", null}}}
+
+state_machine:
+    yaml_path: assets/prompt.yaml
+    # If true, we will bail out if the messages after resolving function calls contain the text
+    # "FUNCALL(". This is useful for debugging, but prevents having messages that legitimately
+    # contain that text.
+    debug_detect_unresolved_funcalls: true
+    rtfm_max_tokens: 2000
+    rtfm_merge_candidates: 35
