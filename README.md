@@ -46,6 +46,10 @@ To run the backend, run `./run_backend.sh` in the repository root. This just exe
 
 You can run the frontend on the same computer by running `./run_frontend.sh`, which executes `poetry run -- python -m flask --app rrosti.frontend.client run`. This will start a web server on port 5000, listening for local connections only. Then you can open http://localhost:5000/ in your browser to access the frontend.
 
+### What you get
+
+![Running Frontend](./rrosti-example.gif)
+
 ### Modify the configuration (if needed)
 
 
