@@ -27,7 +27,6 @@ import functools
 import hashlib
 import inspect
 import logging
-import os
 import sys
 from pathlib import Path
 from typing import Any, Callable, Coroutine, Mapping, NoReturn, Protocol, TypeVar, no_type_check
@@ -119,19 +118,6 @@ class InterceptHandler(logging.Handler):
 
 def setup_logging(level: str = "DEBUG") -> None:
     logging.basicConfig(handlers=[InterceptHandler()], level=level)
-
-
-OPENAI_API_KEY_PATH = os.path.expanduser("~/.openai.apikey")
-
-
-# langchain is silly, it really wants to see this in env
-def load_openai_api_key() -> None:
-    if "OPENAI_API_KEY" in os.environ:
-        return
-    if not os.path.exists(OPENAI_API_KEY_PATH):
-        raise RuntimeError("No OpenAI API key found either in env OPENAI_API_KEY or in file {}", OPENAI_API_KEY_PATH)
-    with open(OPENAI_API_KEY_PATH) as f:
-        os.environ["OPENAI_API_KEY"] = f.read().strip()
 
 
 def indent(text: str, prefix: str | int) -> str:
