@@ -29,7 +29,7 @@ export class Disclaimer {
     onAcceptClick(event) {
         this.button.disabled = true;
         this.button.classList.add('accepted');
-        this.button.innerText = "akzeptiert";
+        this.button.innerText = "accepted";
 
         this.disclaimerDetails.removeAttribute('open');
 
@@ -42,7 +42,7 @@ export class Disclaimer {
 
         this.button = document.createElement('div');
         this.button.classList.add('accept-button');
-        this.button.innerText = "Ich akzeptiere";
+        this.button.innerText = "accept";
 
         buttonWrapper.append(this.button);
         this.button.addEventListener('click', this.onAcceptClick.bind(this));
