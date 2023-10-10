@@ -67,8 +67,6 @@ async def main() -> None:
     logging.getLogger("websockets").setLevel(logging.INFO)
     # logging.getLogger("openai").setLevel(logging.INFO)
 
-    misc.load_openai_api_key()
-
     qlog.ServerStartedEvent.log(args=sys.argv)
 
     engine: websocket_query_server.QueryEngineBase
