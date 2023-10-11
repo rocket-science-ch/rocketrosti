@@ -10,7 +10,7 @@
     ],
     "mypy.runUsingActiveInterpreter": true,
     "mypy.targets": [
-        "snow_leopard", "tests"
+        "rrosti", "tests"
     ],
     "python.analysis.packageIndexDepths": [
         {
@@ -39,7 +39,7 @@
         }
     ],
     "python.testing.pytestArgs": [
-        "snow_leopard", "tests"
+        "rrosti", "tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
