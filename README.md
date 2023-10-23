@@ -45,8 +45,8 @@ The configuration is set to use the OpenAI API by default. If you want to use Az
 #### How to define an environment variable
 How to define an environment variable depends on your operating system:
 - [Windows](https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html#GUID-DD6F9982-60D5-48F6-8270-A27EC53807D0)
-- [Linux](https://www.serverlab.ca/tutorials/linux/administration-linux/how-to-set-environment-variables-in-linux/) 
-- [Mac](https://phoenixnap.com/kb/set-environment-variable-mac/)
+- [Linux](https://help.ubuntu.com/community/EnvironmentVariables/) 
+- [Mac](https://support.apple.com/guide/terminal/use-environment-variables-apd382cc5fa-4f58-4449-b20a-41c53c006f8f/mac)
 
 ### Start the service
 
