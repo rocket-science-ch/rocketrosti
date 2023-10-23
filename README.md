@@ -1,6 +1,13 @@
-# Introduction
+# ROCKETRÖSTI
+Create a conversational agent (think chatbot) to answer questions about textual documents using an LLM such as GPT-4. You can import your documents (in *.txt* format) into it. The framework is generic enough that information extraction from textual documents is only an example of what it can do.
 
-This code implements a system for conversational agents (think chatbot) to answer questions about textual documents using an LLM such as GPT-4. You can import text documents into it. The framework is generic enough that information extraction from textual documents is only an example of what it can do; you can easily add your own tools in Python.
+You can run a demo after the initial installation. It contains a chatbot with knowledge about Switzerland:
+
+![Running Frontend](./rrosti-example.gif)
+
+Note that you need an OpenAI API Key to make the demo work.
+
+## Overview
 
 ROCKETRÖSTI provides a set of tools tailored for interacting with Large Language Models (LLMs). It's primary strength is in data analysis and text-based information retrieval, demonstrated through its default "rtfm" tool. While the system has been designed with extensibility in mind, its adaptability is best realized through hands-on tinkering and understanding its cleanly-written, mypy-typed codebase. Users looking to harness LLMs for specialized applications will find a solid starting point here, alongside comprehensive docstrings and guidance.
 
@@ -46,9 +53,6 @@ To run the backend, run `./run_backend.sh` in the repository root. This just exe
 
 You can run the frontend on the same computer by running `./run_frontend.sh`, which executes `poetry run -- python -m flask --app rrosti.frontend.client run`. This will start a web server on port 5000, listening for local connections only. Then you can open http://localhost:5000/ in your browser to access the frontend.
 
-### What you get
-
-![Running Frontend](./rrosti-example.gif)
 
 ### Modify the configuration (if needed)
 
