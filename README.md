@@ -1,7 +1,7 @@
 # ROCKETRÖSTI
 Create a conversational agent (think chatbot) to answer questions about textual documents using an LLM such as GPT-4. You can import your documents (in *.txt* format) into it. The framework is generic enough that information extraction from textual documents is only an example of what it can do.
 
-You can run a demo after the initial installation. It contains a chatbot with mys answers about Switzerland:
+You can run a demo after the initial installation. It contains a chatbot with knowledge about Switzerland:
 
 ![Running Frontend](./rrosti-example.gif)
 
