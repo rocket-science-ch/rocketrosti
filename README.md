@@ -21,7 +21,9 @@ You need the [Poetry](https://python-poetry.org/) package manager. If you haven'
 
 To install the dependencies, run from the root directory of the repository
 
-```poetry install --no-root``` 
+```bash
+poetry install --no-root
+``` 
 
 to install the dependencies. This will not modify your system Python installation.
 
@@ -56,7 +58,9 @@ To start the service you have to run the backend and the frontend. If you have d
 
 To run the backend, run 
 
-`./run_backend.sh` 
+```bash
+./run_backend.sh 
+```
 
 in the repository root. This just executes `poetry run -- python -m rrosti.servers.serve_data_retrieval_ws --debug-send-intermediates`; you might want to run that command with `--help` to see other command line options. This will start a websocket server, by default, on port 8765, listening for local connections only. The `--debug-send-intermediates` flag will cause the server to send intermediate messsages (e.g. between the agents, or results from a tool) to the frontend, which is useful for understanding what is going on. You can run `poetry run -- python -m rrosti.servers.serve_data_retrieval_ws --help` to see the available options.
 
@@ -64,7 +68,9 @@ in the repository root. This just executes `poetry run -- python -m rrosti.serve
 
 You can run the frontend on the same computer by running 
 
-```./run_frontend.sh```
+```bash
+./run_frontend.sh
+```
 
 which executes `poetry run -- python -m flask --app rrosti.frontend.client run`. This will start a web server on port 5000, listening for local connections only. Then you can open http://localhost:5000/ in your browser to access the frontend.
 
