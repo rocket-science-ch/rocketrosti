@@ -1,11 +1,9 @@
 # ROCKETRÖSTI
 Create a conversational agent (think chatbot) to answer questions about textual documents using an LLM such as GPT-4. You can import your documents (in *.txt* format) into it. The framework is generic enough that information extraction from textual documents is only an example of what it can do.
 
-You can run a demo after the initial installation. It contains a chatbot with knowledge about Switzerland:
+You can run a demo after the initial installation (you will need an OpenAI API Key). It provides a chatbot with knowledge about Switzerland:
 
 ![Running Frontend](./rrosti-example.gif)
-
-Note that you need an OpenAI API Key to make the demo work.
 
 ## Overview
 
@@ -15,13 +13,17 @@ The chatbot's functionality is defined in a [YAML document](assets/prompt.yaml) 
 
 ## Getting started
 
-To get started, you need to have an OpenAI account. Then you need to install Poetry, which installs the dependencies for you. See below for the individual steps.
-
-Using the default GPT-4, queries generally cost a few cents each. You can also change it to use GPT-3.5 which costs only 1/20th of the price of GPT-4, but it is harder to get it to give good answers (i.e. you will need to invest more time in tuning the instructions). You could also play with the 16k GPT-3.5 model, which will allow you to give much more instructions and examples of the kinds of answers you want, at 1/10th of the cost of GPT-4.
+### Preliminaries
+To get started, you need to have an [OpenAI](https://platform.openai.com/) account and OpenAI API key. If you have no key yet, you can generate one [here](https://platform.openai.com/account/api-keys). 
+You need the [Poetry](https://python-poetry.org/) package manager. If you haven't installed it yet, follow [this](https://python-poetry.org/docs/#installing-with-the-official-installer) procedure. 
 
 ### Installing dependencies
 
-We use the Poetry package manager. Install it from https://python-poetry.org/ and then run `poetry install --no-root` from the root directory of the repository to install the dependencies. This will not modify your system Python installation.
+To install the dependencies, run from the root directory of the repository
+
+```poetry install --no-root``` 
+
+to install the dependencies. This will not modify your system Python installation.
 
 The project is tested to work with Python 3.10. Everything else poetry should be able to install for you. If you have no Python 3.10 installation, you can try to relax the dependencies in [`pyproject.toml`](./pyproject.toml) and rerun `poetry install --no-root`.
 
@@ -29,7 +31,7 @@ The project is tested to work with Python 3.10. Everything else poetry should be
 
 Next you need to set up your OpenAI API access. You can use either the [OpenAI API](https://openai.com/product) or Azure's OpenAI API for GPT.
 
-If you don't have an OpenAI API key, you need to generate one in your OpenAI account. [By default](config.defaults.yaml), the system will try to find your API key in the following places and in the following order ([defined in the configuration file](#modify-the-configuration-if-needed))):
+If you don't have an OpenAI API key, you need to generate one in your OpenAI account. [By default](config.defaults.yaml), the system will try to find your API key in the following places and in the following order ([defined in the configuration file](#modify-the-configuration-if-needed)):
 
 | Step | When using OpenAI | When using Azure |
 | ---- | ----------------- | ---------------- |
@@ -39,23 +41,35 @@ If you don't have an OpenAI API key, you need to generate one in your OpenAI acc
 
 The configuration is set to use the OpenAI API by default. If you want to use Azure instead, you need to modify the configuration file (see [below](#modify-the-configuration-if-needed)).
 
-### Importing documents (optional)
+### Start the service
+
+To start the service you have to run the backend and the frontend. If you have done no custumization, this will start a demo with a chatbot, that knows about Switzerland.
+
+#### Run the backend
+
+To run the backend, run 
+
+`./run_backend.sh` 
+
+in the repository root. This just executes `poetry run -- python -m rrosti.servers.serve_data_retrieval_ws --debug-send-intermediates`; you might want to run that command with `--help` to see other command line options. This will start a websocket server, by default, on port 8765, listening for local connections only. The `--debug-send-intermediates` flag will cause the server to send intermediate messsages (e.g. between the agents, or results from a tool) to the frontend, which is useful for understanding what is going on. You can run `poetry run -- python -m rrosti.servers.serve_data_retrieval_ws --help` to see the available options.
+
+#### Run the frontend
+
+You can run the frontend on the same computer by running 
+
+```./run_frontend.sh```
+
+which executes `poetry run -- python -m flask --app rrosti.frontend.client run`. This will start a web server on port 5000, listening for local connections only. Then you can open http://localhost:5000/ in your browser to access the frontend.
+
+## Simple customization 
+
+### Importing your own documents
 
 We have provided some example documents—a few Wikipedia articles—in the [`data/source_documents`](data/source_documents) directory. You can use these to try out the system.
 
 Alternatively, you can replace (or augment) those documents with your own ones. To do this, drop your text files into the [`data/source_documents`] directory with a filename ending in ".txt". The files in this directory will be processed when you start the backend. This also means that after modifications to the directory, the backend may take a while to start up. (You can follow the progress on the console.)
 
-### Run the backend
-
-To run the backend, run `./run_backend.sh` in the repository root. This just executes `poetry run -- python -m rrosti.servers.serve_data_retrieval_ws --debug-send-intermediates`; you might want to run that command with `--help` to see other command line options. This will start a websocket server, by default, on port 8765, listening for local connections only. The `--debug-send-intermediates` flag will cause the server to send intermediate messsages (e.g. between the agents, or results from a tool) to the frontend, which is useful for understanding what is going on. You can run `poetry run -- python -m rrosti.servers.serve_data_retrieval_ws --help` to see the available options.
-
-### Run the frontend
-
-You can run the frontend on the same computer by running `./run_frontend.sh`, which executes `poetry run -- python -m flask --app rrosti.frontend.client run`. This will start a web server on port 5000, listening for local connections only. Then you can open http://localhost:5000/ in your browser to access the frontend.
-
-
-### Modify the configuration (if needed)
-
+### Modify the configuration
 
 The default configuration is defined in [`assets/config.defaults.yaml`](assets/config.defaults.yaml). You can override parts of it by creating a file called `config.yaml` in the repository root. For example, assume you want to change the page title of the frontend page and the port that the backend listens on. You would create a file called `config.yaml` with the following contents:
 
@@ -67,11 +81,15 @@ backend:
     listen_port: 1234
 ```
 
-### What next?
+## Costs
+
+Using the default GPT-4, queries generally cost a few cents each. You can also change it to use GPT-3.5 which costs only 1/20th of the price of GPT-4, but it is harder to get it to give good answers (i.e. you will need to invest more time in tuning the instructions). You could also play with the 16k GPT-3.5 model, which will allow you to give much more instructions and examples of the kinds of answers you want, at 1/10th of the cost of GPT-4.
+
+## What next?
 
 The default prompt demonstrates using the `rtfm` tool for information retrieval from the documents. If you want to explore making your own tools, you should look at the implementation of the rtfm tool in [`rrosti/chat/state_machine/execution.py`](rrosti/chat/state_machine/execution.py#:~:text=class%20_Rtfm) and the implementation of a `python` tool that you can configure to execute Python code produced by the LLM in [the same file](rrosti/chat/state_machine/execution.py#:~:text=class%20_Python) (yet be aware that executing code received from the network "may" be a security risk).
 
-## Brief description of the functionality
+## Further information about the functionality
 
 ### Document database
 
