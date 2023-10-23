@@ -39,7 +39,14 @@ If you don't have an OpenAI API key, you need to generate one in your OpenAI acc
 | 2.   | The environment variable `OPENAI_API_KEY` | The file `.openai.apikey.azure` in your home directory |
 | 3.   | The file `.openai.apikey` in your home directory | The environment variable `OPENAI_API_KEY` |
 
+
 The configuration is set to use the OpenAI API by default. If you want to use Azure instead, you need to modify the configuration file (see [below](#modify-the-configuration-if-needed)).
+
+#### How to define an environment variable
+How to define an environment variable depends on your operating system:
+- [Windows](https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html#GUID-DD6F9982-60D5-48F6-8270-A27EC53807D0)
+- [Linux](https://www.serverlab.ca/tutorials/linux/administration-linux/how-to-set-environment-variables-in-linux/) 
+- [Mac](https://phoenixnap.com/kb/set-environment-variable-mac/)
 
 ### Start the service
 
