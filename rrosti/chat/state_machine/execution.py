@@ -264,8 +264,9 @@ class _ActionHandler(ast.AsyncActionVisitor):
         # FIXME: make sure send is the last action.
         logger.info("[Agent {}]: Send action: to: {}; next: {}", self.runner.name, action.to, action.next_state)
         self.runner._runner_state = RunnerState.WAITING
+
         await self.runner._sm_runner._get_agent_runner(action.to).add_message(
-            self.runner._session.messages[-1].as_user_message(model=self.config.model), quiet=True
+            self.runner._session.messages[-1].as_user_message(), quiet=True
         )
 
 
@@ -372,6 +373,7 @@ class _AgentRunner:
         # For it, we just execute actions. No LLM is invoked here.
         # The initial state is used to set up the environment for the first LLM invocation.
         logger.info("[Agent {}]: Starting.", self._agent.name)
+        self._sm_runner._model_override = self._curr_state.config.model
         await self._execute_actions(self._curr_state.action, self._curr_state.config)
         assert isinstance(self._curr_state, ast.NonInitialState), "Did not get out of initial state"
         # self._process_inbox()  # add any messages from inbox
@@ -412,14 +414,21 @@ class _AgentRunner:
         self._process_inbox()  # add any messages from inbox
 
         msg = await self._session.generate_response(
-            model=(self._session.messages[-1].model if self._session.messages else None)
-            or self._curr_state.config.model
-            or self._agent.config.model
-            or self._sm.config.model
+            self._sm_runner._model_override or self._agent.config.model or self._sm.config.model
         )
+        self._sm_runner._model_override = None
+
         await self._sm_runner.frontend.send_message(msg)
+
         cond = self._curr_state.triggered_condition(msg.text)
-        await self._execute_actions(cond.action, cond.config)
+
+        # If the condition contains a model, it overrides the next model to use
+        self._sm_runner._model_override = cond.config.model
+
+        this_state = self._curr_state
+        await self._execute_actions(cond.action, cond.config)  # updates self._curr_state
+
+        self._prev_state = this_state
 
     async def run(self) -> None:
         """Run the agent's state machine until it terminates."""
@@ -441,6 +450,9 @@ class StateMachineRunner:
     frontend: Frontend
     _message_callback: chat_session.MessageCallback | None
     _openai_provider: openai_api.OpenAIApiProvider
+
+    _model_override: str | None = None
+    """When an action specifies a model, it is stored here and used for the next message."""
 
     @property
     def _is_terminated(self) -> bool:

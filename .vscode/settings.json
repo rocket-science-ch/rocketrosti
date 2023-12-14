@@ -1,13 +1,4 @@
 {
-    "python.linting.pylintEnabled": false,
-    "python.linting.mypyEnabled": true,
-    "python.linting.enabled": false,
-    "python.linting.mypyArgs": [
-        "--follow-imports=silent",
-        "--show-column-numbers",
-        "--no-pretty",
-        "--show-error-codes"
-    ],
     "mypy.runUsingActiveInterpreter": true,
     "mypy.targets": [
         "rrosti", "tests"
@@ -39,7 +30,7 @@
         }
     ],
     "python.testing.pytestArgs": [
-        "rrosti", "tests"
+        "tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
