@@ -64,26 +64,20 @@ class Message:
 
     ttl: int | None = None
 
-    # In an assistant message, the model used to process it. In a user message, the model to use for the next assistant
-    # message.
-    model: str | None = None
-
     cost: float | None = None
     time_used: float | None = None
 
     def __post_init__(self) -> None:
         assert not (self.role == "user" and self.cost is not None), "User messages cannot have a cost"
 
-    def as_user_message(self, model: str | None = None) -> Message:
+    def as_user_message(self) -> Message:
         """
-        Return a user message with the same text as this message, no with cost and with possibly a different model.
+        Return a user message with the same text as this message, with no cost.
         """
-        return Message(role="user", text=self.text, importance=self.importance, model=model)
+        return Message(role="user", text=self.text, importance=self.importance)
 
     def to_string(self, agent: str | None = None) -> str:
         meta: list[str] = [self.role]
-        if self.model:
-            meta.append(self.model)
         if self.cost is not None:
             meta.append(f"{self.cost:.5f} USD")
         if self.time_used is not None:
@@ -194,7 +188,6 @@ class OpenAI(LLM):
             role="assistant",
             text=text,
             importance=msg_importance,
-            model=model,
             cost=model_cost.calculate(prompt_tokens, completion_tokens),
             time_used=elapsed_time,
         )
@@ -211,7 +204,7 @@ class UserInputLLM(LLM):
         print("-" * 40)
         print("Enter message. '.' on a line alone finishes.")
         text = await get_user_input(agent_name, end_line=".")
-        return Message(role="user", importance=Importance.HIGH, text=text, model=model or "user-input")
+        return Message(role="user", importance=Importance.HIGH, text=text)
 
 
 class MessageCallback(Protocol):
@@ -281,7 +274,11 @@ class ChatSession:
         assert message.ttl is None or message.ttl > 0, "llm_ttl must be None or positive"
 
         self.messages.append(message)
-        logger.info("Message({}): {}", message.role, misc.truncate_string(message.text))
+        logger.info(
+            "Message({}): {}",
+            message.role,
+            misc.truncate_string(message.text),
+        )
 
         if self._message_callback is not None:
             self._message_callback(message, self._name, quiet)

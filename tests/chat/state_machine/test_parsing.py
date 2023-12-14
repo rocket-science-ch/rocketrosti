@@ -773,7 +773,7 @@ def test_override_model_in_agent() -> None:
     assert agent._states_by_name["some_state"].config.model == "some_model2"
 
 
-def test_override_modle_in_condition() -> None:
+def test_override_model_in_condition() -> None:
     dsm = parsing.loads_from_yaml(
         """
     config:
@@ -804,6 +804,139 @@ def test_override_modle_in_condition() -> None:
     assert agent.config.model_ast == "some_model2"
     assert agent.config.model == "some_model2"
     assert agent._states_by_name["some_state"].config
+
+
+def test_model_in_initial() -> None:
+    dsm = parsing.loads_from_yaml(
+        """
+config:
+    model: some_model
+agents:
+-   name: agent1
+    states:
+    -   name: initial
+        model: some_model2
+        action:
+        -   goto: some_state
+    -   name: some_state
+        conditions:
+        -   default:
+                action:
+                -   end
+"""
+    )
+    assert isinstance(dsm, ast.StateMachine)
+    assert dsm.config.model_ast == "some_model"
+    agent = dsm.agents[0]
+    assert isinstance(agent.initial_state, ast.InitialState)
+    assert agent.initial_state.config.model_ast == "some_model2"
+
+
+def test_model_thorough() -> None:
+    dsm = parsing.loads_from_yaml(
+        """
+config:
+    model: model_global
+agents:
+-   name: agent_1
+    states:
+    -   name: initial
+        model: model_initial
+        action:
+        -   message: x
+        -   goto: main
+    -   name: main
+        conditions:
+        -   if:
+                contains: 'cond1'
+            then:
+                model: model_cond1
+                action:
+                -   message: 'user_input'
+        -   if:
+                contains: 'cond3'
+            then:
+                model: model_cond3
+                action:
+                -   send:
+                        to: agent_2
+                        next_state: main
+        -   default:
+                model: model_default
+                action:
+                -   message: "user_input"
+-   name: agent_2
+    states:
+    -   name: initial
+        model: model_initial2
+        action:
+        -   message: "x"
+        -   goto: main
+    -   name: main
+        conditions:
+        -   if:
+                contains: 'cond6'
+            then:
+                model: model_cond6
+                action:
+                -   send:
+                        to: agent_1
+                        next_state: main
+        -   default:
+                model: model_default2
+                action:
+                -   message: "x"
+"""
+    )
+    assert isinstance(dsm, ast.StateMachine)
+    assert dsm.config.model_ast == "model_global"
+    agent1 = dsm.agents[0]
+    assert agent1.initial_state.config.model_ast == "model_initial"
+    assert agent1.initial_state.action == ast.ActionList(
+        [
+            ast.MessageAction(text="x", role="user"),
+            ast.GotoAction(label="main"),
+        ]
+    )
+    assert agent1._states_by_name["main"].conditions[0].config.model_ast == "model_cond1"
+    assert agent1._states_by_name["main"].conditions[0].action == ast.ActionList(
+        [
+            ast.MessageAction(text="user_input", role="user"),
+        ]
+    )
+    assert agent1._states_by_name["main"].conditions[1].config.model_ast == "model_cond3"
+    assert agent1._states_by_name["main"].conditions[1].action == ast.ActionList(
+        [
+            ast.SendAction(to="agent_2", next_state="main"),
+        ]
+    )
+    assert agent1._states_by_name["main"].conditions[2].config.model_ast == "model_default"
+    assert agent1._states_by_name["main"].conditions[2].action == ast.ActionList(
+        [
+            ast.MessageAction(text="user_input", role="user"),
+        ]
+    )
+
+    agent2 = dsm.agents[1]
+    assert agent2.initial_state.config.model_ast == "model_initial2"
+    assert agent2.initial_state.action == ast.ActionList(
+        [
+            ast.MessageAction(text="x", role="user"),
+            ast.GotoAction(label="main"),
+        ]
+    )
+    assert agent2._states_by_name["main"].conditions[0].config.model_ast == "model_cond6"
+    assert agent2._states_by_name["main"].conditions[0].action == ast.ActionList(
+        [
+            ast.SendAction(to="agent_1", next_state="main"),
+        ]
+    )
+    assert agent2._states_by_name["main"].conditions[1].config.model_ast == "model_default2"
+    assert agent2._states_by_name["main"].conditions[1].action == ast.ActionList(
+        [
+            ast.MessageAction(text="x", role="user"),
+        ]
+    )
 
 
 def test_load_assets_prompt() -> None:

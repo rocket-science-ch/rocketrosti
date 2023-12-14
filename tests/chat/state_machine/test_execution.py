@@ -27,14 +27,15 @@ from pytest_mock import MockerFixture
 
 from rrosti.chat import chat_session
 from rrosti.chat.state_machine import execution, interpolable, parsing
-from rrosti.llm_api import openai_api, openai_api_direct
+from rrosti.llm_api import openai_api
 from rrosti.servers.websocket_query_server import Frontend
 from rrosti.snippets.abstract_snippet_database import AbstractSnippetDatabase
 from rrosti.snippets.snippet import Snippet
 
 
 def make_state_machine_runner(mocker: MockerFixture, code: str) -> execution.StateMachineRunner:
-    openai_provider = openai_api_direct.DirectOpenAIApiProvider()
+    # openai_provider = openai_api_direct.DirectOpenAIApiProvider()
+    openai_provider = mocker.Mock(spec=openai_api.OpenAIApiProvider)
     llm: chat_session.LLM = mocker.Mock(spec=chat_session.LLM, openai_provider=openai_provider)
     llm.chat_completion.return_value = chat_session.Message(  # type: ignore[attr-defined]
         role="assistant",
@@ -207,9 +208,7 @@ def assert_rtfm_output_is(runner: execution.StateMachineRunner, expected: str) -
     assert msg == expected
 
 
-async def mock_query_embedding_async(
-    openai_provider: openai_api.OpenAIApiProvider, snippets: list[str]
-) -> openai_api.EmbeddingResponse:
+async def mock_query_embedding_async(snippets: list[str]) -> openai_api.EmbeddingResponse:
     return openai_api.EmbeddingResponse(
         snippets=snippets[:],
         embeddings=np.ones((len(snippets), 123), dtype=np.float32),
@@ -247,9 +246,153 @@ Extract #124:
 goodbye, cruel world
 """.strip()
 
-    mocker.patch.object(openai_api_direct.DirectOpenAIApiProvider, "acreate_embedding", new=mock_query_embedding_async)
+    runner._openai_provider.acreate_embedding.side_effect = mock_query_embedding_async  # type: ignore[attr-defined]
     runner.frontend.handle_rtfm_output.return_value = 123  # type: ignore[attr-defined]
 
     await runner.run()
 
     assert_rtfm_output_is(runner, EXPECTED_OUTPUT)
+
+
+COMPLEX_YAML = """
+config:
+    model: model_global
+agents:
+-   name: agent_1
+    states:
+    -   name: initial
+        model: model_initial
+        action:
+        -   message: x
+        -   goto: main
+    -   name: main
+        conditions:
+        -   if:
+                contains: 'cond1'
+            then:
+                model: model_cond1
+                action:
+                -   message: 'user_input'
+        -   if:
+                contains: 'cond3'
+            then:
+                model: model_cond3
+                action:
+                -   send:
+                        to: agent_2
+                        next_state: main
+        -   default:
+                model: model_default
+                action:
+                -   message: "user_input"
+-   name: agent_2
+    states:
+    -   name: initial
+        model: model_initial2
+        action:
+        -   message: "agent 2 initial"
+        -   goto: main
+    -   name: main
+        conditions:
+        -   if:
+                contains: 'cond6'
+            then:
+                model: model_cond6
+                action:
+                -   send:
+                        to: agent_1
+                        next_state: main
+        -   default:
+                model: model_default2
+                action:
+                -   message: "x"
+""".strip()
+
+
+async def test_complex_cond1(mocker: MockerFixture) -> None:
+    # 1. message "x" is appended
+    # 2. LLM is executed with model_initial; output "cond1"
+    # 3. message "user_input" is appended
+    runner = make_state_machine_runner(mocker, COMPLEX_YAML)
+
+    runner._llm.chat_completion.return_value = chat_session.Message(  # type: ignore[attr-defined]
+        role="assistant",
+        importance=chat_session.Importance.LOW,
+        ttl=None,
+        text="cond1: something",
+    )
+    await runner.step()
+
+    runner1 = runner._agent_runners[0]
+    runner2 = runner._agent_runners[1]
+
+    assert len(runner._agent_runners[0]._session.messages) == 3
+
+    assert runner1._session.messages[0].role == "user"
+    assert runner1._session.messages[0].text == "x"
+    assert runner1._session.messages[1].role == "assistant"
+    assert runner1._session.messages[1].role == "assistant"
+    assert runner1._session.messages[1].text == "cond1: something"
+    assert runner1._session.messages[2].role == "user"
+    assert runner1._session.messages[2].text == "user_input"
+
+    assert runner._llm.chat_completion.call_count == 1  # type: ignore[attr-defined]
+    assert runner._llm.chat_completion.call_args[1]["model"] == "model_initial"  # type: ignore[attr-defined]
+
+    # execute one more step. The LLM should be invoked with model_cond1.
+    runner._llm.chat_completion.reset_mock()  # type: ignore[attr-defined]
+    runner._llm.chat_completion.return_value = chat_session.Message(  # type: ignore[attr-defined]
+        role="assistant",
+        importance=chat_session.Importance.LOW,
+        ttl=None,
+        text="cond1: something else",
+    )
+    await runner.step()
+
+    # No messages should have been sent to the other agent
+    assert len(runner2._session.messages) == 0
+
+    assert len(runner1._session.messages) == 5
+    assert runner1._session.messages[3].role == "assistant"
+    assert runner1._session.messages[3].text == "cond1: something else"
+    assert runner1._session.messages[4].role == "user"
+    assert runner1._session.messages[4].text == "user_input"
+
+    assert runner._llm.chat_completion.call_count == 1  # type: ignore[attr-defined]
+    assert runner._llm.chat_completion.call_args[1]["model"] == "model_cond1"  # type: ignore[attr-defined]
+
+
+async def test_complex_cond3(mocker: MockerFixture) -> None:
+    # 1. message "x" is appended
+    # 2. LLM is executed with model_initial; output "cond3"
+    # 3. LLM output is sent to agent_2
+    runner = make_state_machine_runner(mocker, COMPLEX_YAML)
+
+    runner._llm.chat_completion.return_value = chat_session.Message(  # type: ignore[attr-defined]
+        role="assistant",
+        importance=chat_session.Importance.LOW,
+        ttl=None,
+        text="cond3: something",
+    )
+    await runner.step()
+
+    runner1 = runner._agent_runners[0]
+    runner2 = runner._agent_runners[1]
+
+    assert len(runner._agent_runners[0]._session.messages) == 2
+
+    assert runner1._session.messages[0].role == "user"
+    assert runner1._session.messages[0].text == "x"
+    assert runner1._session.messages[1].role == "assistant"
+    assert runner1._session.messages[1].role == "assistant"
+    assert runner1._session.messages[1].text == "cond3: something"
+
+    assert runner2._session.messages[0].role == "user"
+    assert runner2._session.messages[0].text == "agent 2 initial"
+
+    assert len(runner2._session.messages) == 2
+    assert runner2._session.messages[1].role == "user"
+    assert runner2._session.messages[1].text == "cond3: something"
+
+    assert runner._llm.chat_completion.call_count == 1  # type: ignore[attr-defined]
+    assert runner._llm.chat_completion.call_args[1]["model"] == "model_initial"  # type: ignore[attr-defined]
