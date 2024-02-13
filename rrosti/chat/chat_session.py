@@ -27,7 +27,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from typing import Literal, Protocol
 
-import aioconsole  # type: ignore[import]
+import aioconsole  # type: ignore[import-untyped]
 import openai
 from loguru import logger
 from overrides import override

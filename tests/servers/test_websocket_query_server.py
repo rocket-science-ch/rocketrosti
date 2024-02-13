@@ -37,7 +37,7 @@ WebSocketMocker = Callable[[], websockets.WebSocketServerProtocol]  # type: igno
 @pytest.fixture
 def websocket_mocker(mocker: MockerFixture) -> WebSocketMocker:
     def _run() -> websockets.WebSocketServerProtocol:  # type: ignore[name-defined]
-        return mocker.Mock(spec=websockets.WebSocketServerProtocol)  # type: ignore[attr-defined]
+        return mocker.Mock(spec=websockets.WebSocketServerProtocol)  # type: ignore[attr-defined,no-any-return]
 
     return _run
 
