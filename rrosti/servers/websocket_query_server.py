@@ -92,8 +92,7 @@ class Frontend(ABC):
     _peek_buffer: UserInputMessage | None = None
 
     @abstractmethod
-    async def _get_user_input_impl(self) -> UserInputMessage:
-        ...
+    async def _get_user_input_impl(self) -> UserInputMessage: ...
 
     async def get_user_input(self) -> UserInputMessage:
         msg = await self.peek_user_input()
@@ -106,20 +105,16 @@ class Frontend(ABC):
         return self._peek_buffer
 
     @abstractmethod
-    async def send_message(self, msg: Message | str) -> None:
-        ...
+    async def send_message(self, msg: Message | str) -> None: ...
 
     @abstractmethod
-    async def read_message(self, message: str) -> MessageType:
-        ...
+    async def read_message(self, message: str) -> MessageType: ...
 
     @abstractmethod
-    def handle_python_output(self, python_output: PythonItem) -> None:
-        ...
+    def handle_python_output(self, python_output: PythonItem) -> None: ...
 
     @abstractmethod
-    def handle_rtfm_output(self, snippets: list[Snippet]) -> int:
-        ...
+    def handle_rtfm_output(self, snippets: list[Snippet]) -> int: ...
 
 
 class WebFrontend(Frontend):
@@ -247,8 +242,7 @@ class InterpolableItem(ABC):
     """
 
     @abstractmethod
-    def to_dict(self) -> dict[str, Any]:
-        ...
+    def to_dict(self) -> dict[str, Any]: ...
 
 
 @dataclass

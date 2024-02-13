@@ -289,8 +289,7 @@ class RequestWorker(ABC, Generic[RequestT, ResponseT]):
         return item.fut.result()
 
     @abstractmethod
-    def _process_one(self, request: RequestT) -> ResponseT:
-        ...
+    def _process_one(self, request: RequestT) -> ResponseT: ...
 
     def _thread_main(self) -> None:
         # logger.info("Thread {} starting", threading.current_thread().name)

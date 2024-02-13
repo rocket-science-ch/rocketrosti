@@ -86,12 +86,10 @@ class Interpolable(ABC):
     """An interpolable function invocation, like {user_input()}, {python()} or {rtfm()}."""
 
     @abstractmethod
-    def is_for_me(self, code: str) -> bool:
-        ...
+    def is_for_me(self, code: str) -> bool: ...
 
     @abstractmethod
-    async def execute(self, last_msg: str | None, frontend: Frontend) -> InterpolableOutput:
-        ...
+    async def execute(self, last_msg: str | None, frontend: Frontend) -> InterpolableOutput: ...
 
 
 # A simple interpolable that wraps a coroutine

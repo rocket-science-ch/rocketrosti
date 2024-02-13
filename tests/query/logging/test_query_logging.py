@@ -200,8 +200,9 @@ def test_log_chat_completion_call_with_exception(query_logging_cleanup: FileDict
     class DummyException(Exception):
         pass
 
-    with pytest.raises(DummyException), qlog.ChatCompletionCallEvent.section(
-        model="fake_model", text=["hello, world"], endpoint="fake_endpoint"
+    with (
+        pytest.raises(DummyException),
+        qlog.ChatCompletionCallEvent.section(model="fake_model", text=["hello, world"], endpoint="fake_endpoint"),
     ):
         raise DummyException("oops")
 
@@ -237,8 +238,9 @@ class NotPicklableException(Exception):
 
 def test_log_chat_completion_call_with_unpicklable_exception(query_logging_cleanup: FileDict) -> None:
     qlog.ServerStartedEvent.log(args=["--fake"])
-    with pytest.raises(NotPicklableException), qlog.ChatCompletionCallEvent.section(
-        model="fake_model", text=["hello, world"], endpoint="fake_endpoint"
+    with (
+        pytest.raises(NotPicklableException),
+        qlog.ChatCompletionCallEvent.section(model="fake_model", text=["hello, world"], endpoint="fake_endpoint"),
     ):
         raise NotPicklableException
 

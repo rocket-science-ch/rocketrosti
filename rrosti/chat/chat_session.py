@@ -112,8 +112,9 @@ class LLM(ABC):
     """A language model."""
 
     @abstractmethod
-    async def chat_completion(self, messages: list[Message], agent_name: str = "", model: str | None = None) -> Message:
-        ...
+    async def chat_completion(
+        self, messages: list[Message], agent_name: str = "", model: str | None = None
+    ) -> Message: ...
 
 
 class OpenAI(LLM):
@@ -208,8 +209,7 @@ class UserInputLLM(LLM):
 
 
 class MessageCallback(Protocol):
-    def __call__(self, message: Message, agent: str | None, quiet: bool) -> None:
-        ...
+    def __call__(self, message: Message, agent: str | None, quiet: bool) -> None: ...
 
 
 class ChatSession:
