@@ -576,7 +576,7 @@ class ProgramArgs(ProgramArgsBase, ProgramArgsMixin):
 
 class FakeWebFrontend(WebFrontend):
     def __init__(self) -> None:
-        super().__init__(None, False)
+        super().__init__(None, False)  # type: ignore[arg-type]
 
     @override
     async def send_message(self, msg: Message | str) -> None:

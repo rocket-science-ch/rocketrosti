@@ -611,8 +611,9 @@ class QueryEvent(_LogEvent):
     @contextlib.contextmanager
     def section(text: str, uuid: str, prompt: str) -> Iterator[None]:
         query_fname = _env()._make_query_filename(uuid)
-        with _log_section(QueryEvent(_PRIVATE_OBJECT, text=text, uuid=uuid, prompt=prompt)), _switch_logfile(
-            query_fname
+        with (
+            _log_section(QueryEvent(_PRIVATE_OBJECT, text=text, uuid=uuid, prompt=prompt)),
+            _switch_logfile(query_fname),
         ):
             yield
 

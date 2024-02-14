@@ -51,8 +51,7 @@ class _ProgramArgsBaseProtocol(Protocol):
 
 class ProgramArgsMixinProtocol(Protocol):
     @classmethod
-    def _add_args(cls, parser: argparse.ArgumentParser) -> None:
-        ...
+    def _add_args(cls, parser: argparse.ArgumentParser) -> None: ...
 
 
 class _ProgramArgsTypeProtocol(_ProgramArgsBaseProtocol, ProgramArgsMixinProtocol, Protocol):

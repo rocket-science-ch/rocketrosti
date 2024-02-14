@@ -14,8 +14,8 @@ The chatbot's functionality is defined in a [YAML document](assets/prompt.yaml) 
 ## Getting started
 
 ### Preliminaries
-To get started, you need to have an [OpenAI](https://platform.openai.com/) account and OpenAI API key. If you have no key yet, you can generate one [here](https://platform.openai.com/account/api-keys). 
-You need the [Poetry](https://python-poetry.org/) package manager. If you haven't installed it yet, follow [this](https://python-poetry.org/docs/#installing-with-the-official-installer) procedure. 
+To get started, you need to have an [OpenAI](https://platform.openai.com/) account and OpenAI API key. If you have no key yet, you can generate one [here](https://platform.openai.com/account/api-keys).
+You need the [Poetry](https://python-poetry.org/) package manager. If you haven't installed it yet, follow [this](https://python-poetry.org/docs/#installing-with-the-official-installer) procedure.
 
 ### Installing dependencies
 
@@ -23,7 +23,7 @@ To install the dependencies, run from the root directory of the repository
 
 ```bash
 poetry install --no-root
-``` 
+```
 
 to install the dependencies. This will not modify your system Python installation.
 
@@ -47,7 +47,7 @@ The configuration is set to use the OpenAI API by default. If you want to use Az
 #### How to define an environment variable
 How to define an environment variable depends on your operating system:
 - [Windows](https://docs.oracle.com/en/database/oracle/machine-learning/oml4r/1.5.1/oread/creating-and-modifying-environment-variables-on-windows.html#GUID-DD6F9982-60D5-48F6-8270-A27EC53807D0)
-- [Linux](https://help.ubuntu.com/community/EnvironmentVariables/) 
+- [Linux](https://help.ubuntu.com/community/EnvironmentVariables/)
 - [Mac](https://support.apple.com/guide/terminal/use-environment-variables-apd382cc5fa-4f58-4449-b20a-41c53c006f8f/mac)
 
 ### Start the service
@@ -56,17 +56,17 @@ To start the service you have to run the backend and the frontend. If you have d
 
 #### Run the backend
 
-To run the backend, run 
+To run the backend, run
 
 ```bash
-./run_backend.sh 
+./run_backend.sh
 ```
 
 in the repository root. This just executes `poetry run -- python -m rrosti.servers.serve_data_retrieval_ws --debug-send-intermediates`; you might want to run that command with `--help` to see other command line options. This will start a websocket server, by default, on port 8765, listening for local connections only. The `--debug-send-intermediates` flag will cause the server to send intermediate messsages (e.g. between the agents, or results from a tool) to the frontend, which is useful for understanding what is going on. You can run `poetry run -- python -m rrosti.servers.serve_data_retrieval_ws --help` to see the available options.
 
 #### Run the frontend
 
-You can run the frontend on the same computer by running 
+You can run the frontend on the same computer by running
 
 ```bash
 ./run_frontend.sh
@@ -74,7 +74,7 @@ You can run the frontend on the same computer by running
 
 which executes `poetry run -- python -m flask --app rrosti.frontend.client run`. This will start a web server on port 5000, listening for local connections only. Then you can open http://localhost:5000/ in your browser to access the frontend.
 
-## Simple customization 
+## Simple customization
 
 ### Importing your own documents
 

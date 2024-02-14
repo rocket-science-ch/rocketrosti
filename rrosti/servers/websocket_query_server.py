@@ -92,8 +92,7 @@ class Frontend(ABC):
     _peek_buffer: UserInputMessage | None = None
 
     @abstractmethod
-    async def _get_user_input_impl(self) -> UserInputMessage:
-        ...
+    async def _get_user_input_impl(self) -> UserInputMessage: ...
 
     async def get_user_input(self) -> UserInputMessage:
         msg = await self.peek_user_input()
@@ -106,20 +105,16 @@ class Frontend(ABC):
         return self._peek_buffer
 
     @abstractmethod
-    async def send_message(self, msg: Message | str) -> None:
-        ...
+    async def send_message(self, msg: Message | str) -> None: ...
 
     @abstractmethod
-    async def read_message(self, message: str) -> MessageType:
-        ...
+    async def read_message(self, message: str) -> MessageType: ...
 
     @abstractmethod
-    def handle_python_output(self, python_output: PythonItem) -> None:
-        ...
+    def handle_python_output(self, python_output: PythonItem) -> None: ...
 
     @abstractmethod
-    def handle_rtfm_output(self, snippets: list[Snippet]) -> int:
-        ...
+    def handle_rtfm_output(self, snippets: list[Snippet]) -> int: ...
 
 
 class WebFrontend(Frontend):
@@ -247,8 +242,7 @@ class InterpolableItem(ABC):
     """
 
     @abstractmethod
-    def to_dict(self) -> dict[str, Any]:
-        ...
+    def to_dict(self) -> dict[str, Any]: ...
 
 
 @dataclass
@@ -371,6 +365,8 @@ class QueryEngineBase(ABC):
             async def awebsocket_message_handler(frontend: Frontend) -> None:
                 try:
                     async for message in websocket:
+                        if not isinstance(message, str):
+                            raise TypeError(f"Expected a string, got {type(message)}: {message!r}")
                         message_type = await frontend.read_message(message)
                         if message_type is MessageType.new_question:
                             query_handler_task.cancel()
@@ -378,7 +374,7 @@ class QueryEngineBase(ABC):
                             # (not keeping the old questions)
                             await websocket.close()
                         elif message_type is MessageType.unknown:
-                            raise UnknownMessageType(f'Error: Unknown message type "{message["type"]}".')
+                            raise UnknownMessageType(f'Error: Unknown message type: "{message}".')
                 except (
                     websockets.exceptions.ConnectionClosedError,  # type: ignore[attr-defined]
                     websockets.exceptions.ConnectionClosedOK,  # type: ignore[attr-defined]
@@ -396,16 +392,17 @@ class QueryEngineBase(ABC):
             frontend = WebFrontend(websocket=websocket, debug_send_intermediates=args.debug_send_intermediates)
 
             try:
+                remote_port_str = websocket.request_headers.get("X-Remote-Port")
                 remote_address: tuple[Any, ...] = (
                     websocket.request_headers.get("X-Real-IP"),
-                    int(websocket.request_headers.get("X-Remote-Port")),
+                    int(remote_port_str) if remote_port_str else None,
                 )
             except TypeError:
                 remote_address = websocket.remote_address
             if remote_address[0] is None:
                 remote_address = websocket.remote_address
             with qlog.ConnectionEvent.section(
-                id=websocket.id, local_addr=websocket.local_address, remote_addr=str(remote_address)
+                id=str(websocket.id), local_addr=websocket.local_address, remote_addr=str(remote_address)
             ):
                 # create tasks for the websocket message handler and the query handler
                 query_handler_task = asyncio.create_task(aquery_handler(frontend))
